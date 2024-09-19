@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# pip install uWSGI
-# sudo apt install supervisor
+pip install uWSGI
+sudo apt install supervisor
 
 # Kolory
 RESET="\033[0m"
