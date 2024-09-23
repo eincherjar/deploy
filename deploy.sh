@@ -112,6 +112,15 @@ logto = ${log_dir}/uwsgi.log
 
     echo -e "Aby uruchomić ${LIGHT_GREEN}uWSGI${RESET}, użyj poniższej komendy: ${LIGHT_PURPLE}uwsgi --ini $uwsgi_conf_path${RESET}"
 
+    echo -e "${LIGHT_BLUE}Pamiętaj, aby dodać poniższe linie do pliku settings.py po liniach:${RESET}"
+    echo "STATIC_URL = '/static/'"
+    echo "MEDIA_URL = '/media/'"
+    echo ""
+    echo -e "${BOLD}MEDIA_ROOT = os.path.join(BASE_DIR, 'media')${RESET}"
+    echo -e "${BOLD}STATIC_ROOT = os.path.join(BASE_DIR, 'static')${RESET}"
+    echo ""
+    echo "Następnie wykonaj komendę: ${LIGHT_GREEN}python3 manage.py collectstatic${RESET}"
+
     # Konfiguracja Supervisora
     configure_supervisor
 }
