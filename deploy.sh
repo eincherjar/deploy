@@ -119,10 +119,16 @@ logto = ${log_dir}/uwsgi.log
     echo -e "${BOLD}MEDIA_ROOT = os.path.join(BASE_DIR, 'media')${RESET}"
     echo -e "${BOLD}STATIC_ROOT = os.path.join(BASE_DIR, 'static')${RESET}"
     echo ""
+    echo -e "${LIGHT_BLUE}Pamiętaj, aby dodać poniższe linie do pliku urls.py:${RESET}"
+    echo "if settings.DEBUG:"
+    echo "    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)"
+    echo "    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)"
     echo "Następnie wykonaj komendę: ${LIGHT_GREEN}python3 manage.py collectstatic${RESET}"
 
     # Konfiguracja Supervisora
     configure_supervisor
+    
+    echo -e "Aby zrestartować aplikację, użyj komendy: ${LIGHT_GREEN}sudo supervisorctl restart ${app_name}${RESET}"
 }
 
 # Funkcja do usunięcia konfiguracji uWSGI
