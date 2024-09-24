@@ -1,8 +1,5 @@
 #!/bin/bash
 
-pip install uWSGI
-sudo apt install supervisor
-
 # Kolory
 RESET="\033[0m"
 BOLD="\033[1m"
@@ -52,6 +49,10 @@ close_port() {
 
 # Funkcja do tworzenia pliku konfiguracyjnego uWSGI
 create_config() {
+
+    pip install uWSGI
+    sudo apt install supervisor
+    
     echo -e "${LIGHT_BLUE}Tworzenie pliku konfiguracyjnego uWSGI${RESET}"
 
     project_name=$(basename "$(pwd)")
