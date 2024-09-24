@@ -123,7 +123,8 @@ logto = ${log_dir}/uwsgi.log
     echo "if settings.DEBUG:"
     echo "    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)"
     echo "    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)"
-    echo "Następnie wykonaj komendę: ${LIGHT_GREEN}python3 manage.py collectstatic${RESET}"
+    echo ""
+    echo -e "Następnie wykonaj komendę: ${LIGHT_GREEN}python3 manage.py collectstatic ${RESET}"
 
     # Konfiguracja Supervisora
     configure_supervisor
