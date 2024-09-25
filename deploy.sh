@@ -119,7 +119,7 @@ create_config() {
 
     uwsgi_conf_content="[uwsgi]
 module = ${module_path}
-https = ${server_ip}:${server_port},${ssl_certificate},${ssl_key}
+https = 0.0.0.0:${server_port},${ssl_certificate},${ssl_key}
 chdir = ${current_dir}
 home = ${venv_path}
 static-map = /static=${static_path}
