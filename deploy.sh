@@ -63,6 +63,15 @@ get_ssl_certificate() {
 
 # Funkcja do tworzenia pliku konfiguracyjnego uWSGI
 create_config() {
+    # Opcja do instalacji Certbota
+    read -p "$(echo -e "${LIGHT_GREEN}Czy chcesz zainstalować Certbota? (tak/nie lub TAK/NIE): ${RESET}") " install_certbot_choice
+
+    # Akceptacja różnych wariantów odpowiedzi
+    if [[ "$install_certbot_choice" =~ ^[Tt]ak$ || "$install_certbot_choice" =~ ^[Tt][Aa][Kk]$ ]]; then
+        install_certbot
+        get_ssl_certificate
+    fi
+
     pip install uWSGI
     sudo apt install supervisor
     
@@ -193,15 +202,6 @@ echo -e "${LIGHT_BLUE}Wybierz opcję:${RESET}"
 echo "1. Stwórz konfigurację uWSGI"
 echo "2. Usuń konfigurację uWSGI"
 echo "3. Wyjście"
-
-# Opcja do instalacji Certbota
-read -p "$(echo -e "${LIGHT_GREEN}Czy chcesz zainstalować Certbota? (tak/nie lub TAK/NIE): ${RESET}") " install_certbot_choice
-
-# Akceptacja różnych wariantów odpowiedzi
-if [[ "$install_certbot_choice" =~ ^[Tt]ak$ || "$install_certbot_choice" =~ ^[Tt][Aa][Kk]$ ]]; then
-    install_certbot
-    get_ssl_certificate
-fi
 
 read -p "Wybór: " choice
 handle_menu_choice "$choice"
