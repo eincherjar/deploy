@@ -47,9 +47,22 @@ close_port() {
     fi
 }
 
+# Funkcja do instalacji Certbota
+install_certbot() {
+    echo -e "${LIGHT_BLUE}Instalowanie Certbota...${RESET}"
+    sudo apt update
+    sudo apt install -y certbot
+}
+
+# Funkcja do uzyskiwania certyfikatu
+get_ssl_certificate() {
+    read -p "$(echo -e "${LIGHT_GREEN}Wprowadź nazwę domeny (np. b2b.globetyre.pl): ${RESET}") " domain_name
+    echo -e "${LIGHT_BLUE}Uzyskiwanie certyfikatu SSL dla domeny: $domain_name${RESET}"
+    sudo certbot certonly --standalone -d "$domain_name"
+}
+
 # Funkcja do tworzenia pliku konfiguracyjnego uWSGI
 create_config() {
-
     pip install uWSGI
     sudo apt install supervisor
     
@@ -91,9 +104,13 @@ create_config() {
 
     ensure_directory_exists "$log_dir"
 
+    # Dodaj konfigurację SSL
+    ssl_certificate="/etc/letsencrypt/live/$domain_name/fullchain.pem"
+    ssl_key="/etc/letsencrypt/live/$domain_name/privkey.pem"
+
     uwsgi_conf_content="[uwsgi]
 module = ${module_path}
-http = ${server_ip}:${server_port}
+https = ${server_ip}:${server_port},${ssl_certificate},${ssl_key}
 chdir = ${current_dir}
 home = ${venv_path}
 static-map = /static=${static_path}
@@ -133,50 +150,6 @@ logto = ${log_dir}/uwsgi.log
     echo -e "Aby zrestartować aplikację, użyj komendy: ${LIGHT_GREEN}sudo supervisorctl restart ${app_name}${RESET}"
 }
 
-# Funkcja do usunięcia konfiguracji uWSGI
-delete_config() {
-    # Sprawdzamy, czy plik konfiguracyjny uWSGI istnieje
-    if [ ! -f "$uwsgi_conf_path" ]; then
-        echo -e "${RED}Plik konfiguracyjny nie istnieje.${RESET}"
-        return
-    fi
-
-    echo -e "${LIGHT_BLUE}Usuwanie pliku konfiguracyjnego uWSGI${RESET}"
-
-    # Wyciągnięcie portu z pliku konfiguracyjnego
-    server_port=$(grep "http =" "$uwsgi_conf_path" | awk -F: '{print $NF}')
-
-    # Usunięcie pliku konfiguracyjnego uWSGI
-    rm -f "$uwsgi_conf_path"
-    echo -e "${LIGHT_GREEN}Plik konfiguracyjny uWSGI został usunięty.${RESET}"
-
-    # Zamknięcie portu w ufw
-    close_port "$server_port"
-
-    # Usunięcie konfiguracji Supervisora na podstawie pliku w katalogu deploy
-    for conf_file in "$log_dir"/*.conf; do
-        if [ -f "$conf_file" ]; then
-            conf_filename=$(basename "$conf_file")
-            supervisor_conf_path="/etc/supervisor/conf.d/$conf_filename"
-            if [ -f "$supervisor_conf_path" ]; then
-                echo -e "${LIGHT_BLUE}Usuwanie konfiguracji Supervisora: ${conf_filename}${RESET}"
-                sudo rm "$supervisor_conf_path"
-                sudo supervisorctl reread
-                sudo supervisorctl update
-                echo -e "${LIGHT_GREEN}Konfiguracja Supervisora została usunięta.${RESET}"
-            else
-                echo -e "${RED}Konfiguracja Supervisora dla ${conf_filename} nie istnieje.${RESET}"
-            fi
-        fi
-    done
-
-    # Usunięcie katalogu 'deploy' jeśli istnieje
-    if [ -d "$log_dir" ]; then
-        rm -rf "$log_dir"
-        echo -e "${LIGHT_GREEN}Katalog deploy został usunięty.${RESET}"
-    fi
-}
-
 # Funkcja do konfiguracji Supervisora
 configure_supervisor() {
     if [ ! -f "$uwsgi_conf_path" ]; then
@@ -192,8 +165,7 @@ autorestart=true
 stderr_logfile=${log_dir}/uwsgi.err.log
 stdout_logfile=${log_dir}/uwsgi.out.log
 user=$(whoami)
-environment=PATH=\"${venv_path}/bin\"
-"
+environment=PATH=\"${venv_path}/bin\""
 
     supervisor_conf_path="${log_dir}/${app_name}.conf"
     echo "$supervisor_conf_content" > "$supervisor_conf_path"
@@ -216,16 +188,20 @@ handle_menu_choice() {
     esac
 }
 
-# Ścieżki do plików konfiguracyjnych
-current_dir=$(pwd)
-log_dir="${current_dir}/deploy"
-uwsgi_conf_path="${log_dir}/uwsgi.ini"
-
 # Wyświetlanie menu
 echo -e "${LIGHT_BLUE}Wybierz opcję:${RESET}"
 echo "1. Stwórz konfigurację uWSGI"
 echo "2. Usuń konfigurację uWSGI"
 echo "3. Wyjście"
+
+# Opcja do instalacji Certbota
+read -p "$(echo -e "${LIGHT_GREEN}Czy chcesz zainstalować Certbota? (tak/nie lub TAK/NIE): ${RESET}") " install_certbot_choice
+
+# Akceptacja różnych wariantów odpowiedzi
+if [[ "$install_certbot_choice" =~ ^[Tt]ak$ || "$install_certbot_choice" =~ ^[Tt][Aa][Kk]$ ]]; then
+    install_certbot
+    get_ssl_certificate
+fi
 
 read -p "Wybór: " choice
 handle_menu_choice "$choice"
